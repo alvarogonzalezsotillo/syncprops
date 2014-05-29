@@ -38,31 +38,41 @@ public class Props extends Properties {
     }
 
     void updateModifiedDate(Date now) {
-        String date = _format.format(now);
-        super.setProperty(MODIFIED_DATE, date);
+        if (now != null) {
+            String date = _format.format(now);
+            super.setProperty(MODIFIED_DATE, date);
+        }
+        else {
+            remove(MODIFIED_DATE);
+        }
     }
 
-    void updateSyncDate( Date now ){
-        String date = _format.format(now);
-        super.setProperty(SYNC_DATE, date);
+    void updateSyncDate(Date now) {
+        if (now != null) {
+            String date = _format.format(now);
+            super.setProperty(SYNC_DATE, date);
+        }
+        else {
+            remove(SYNC_DATE);
+        }
     }
 
-    private Date getDate( String key ){
+    private Date getDate(String key) {
         String v = getProperty(key);
-        try{
+        try {
             return _format.parse(v);
         }
-        catch( ParseException e ){
+        catch (ParseException e) {
             return null;
         }
     }
 
-    public Date modifiedDate(){
+    public Date modifiedDate() {
         return getDate(MODIFIED_DATE);
     }
 
-    public Date syncDate(){
-        return getDate( SYNC_DATE );
+    public Date syncDate() {
+        return getDate(SYNC_DATE);
     }
 
 

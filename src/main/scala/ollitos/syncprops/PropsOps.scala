@@ -1,5 +1,6 @@
 package ollitos.syncprops
 
+
 /**
  * Created with IntelliJ IDEA.
  * User: alvaro
@@ -15,5 +16,6 @@ class PropsOps( p : Props ) extends ((String)=>String){
 }
 
 object PropsOps{
+  import scala.language.implicitConversions
   implicit def toPropsOps( p : Props ) = new PropsOps(p)
 }

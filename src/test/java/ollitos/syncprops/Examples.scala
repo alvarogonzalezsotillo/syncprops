@@ -1,6 +1,8 @@
 package ollitos.syncprops
 
-import java.util.Date
+import ollitos.syncprops.engine.{SyncResult, Sync}
+import ollitos.syncprops.engine.Sync.SyncMode
+
 
 /**
  * Created with IntelliJ IDEA.
@@ -12,12 +14,42 @@ import java.util.Date
 object Examples {
 
   import PropsOps._
+  import java.util.Date
+  import java.text.SimpleDateFormat
+  import scala.util.Try
 
 
   val matchK = "match"
   val onlyInClientK = "onlyInClient"
   val onlyInServerK = "onlyInServer"
   val mismatchK = "mismatch"
+
+  def date : Date = new Date
+
+  def createSync = new Sync{
+    def sync(ancestor: Props, mine: Props, theirs: Props, mode: SyncMode): SyncResult = ???
+  }
+
+  def date( s: String ) : Date = {
+    val formats = Seq("YYYY-MM-dd-HH-mm-ss-SSS",
+                      "YYYY-MM-dd-HH-mm-ss",
+                      "YYYY-MM-dd-HH-mm",
+                      "YYYY-MM-dd-HH",
+                      "YYYY-MM-dd" )
+
+    formats.map( new SimpleDateFormat(_) ).
+            map( df => Try( df.parse(s) ) ).
+            find( _.isSuccess ).get.get
+  }
+
+  def emptyProps(synced: Date, modified: Date) = {
+    val ret = new Props()
+
+    ret.updateModifiedDate(modified)
+    ret.updateSyncDate(synced)
+
+    ret
+  }
 
 
   def serverProps(synced: Date, modified: Date) = {
