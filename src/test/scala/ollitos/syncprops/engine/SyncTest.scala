@@ -1,7 +1,11 @@
 package ollitos.syncprops.engine
 
+import ollitos.syncprops.engine.SyncResult.ResultCode._
 import org.scalatest.FlatSpec
-import ollitos.syncprops.engine.Sync.SyncMode
+import ollitos.syncprops.engine.Sync.SyncMode._
+import org.scalatest.junit.JUnitRunner
+import org.junit.runner.RunWith
+import ollitos.syncprops.PropsOps._
 
 /**
  * Created with IntelliJ IDEA.
@@ -10,6 +14,9 @@ import ollitos.syncprops.engine.Sync.SyncMode
  * Time: 11:43
  * To change this template use File | Settings | File Templates.
  */
+
+
+@RunWith(classOf[JUnitRunner])
 class SyncTest extends FlatSpec{
 
   import ollitos.syncprops.Examples._
@@ -18,11 +25,11 @@ class SyncTest extends FlatSpec{
     val clientProps = emptyProps(null,null)
     val ancestorProps = serverProps( date, date )
     val servProps = serverProps( date, date )
-    val sync = createSync
 
-    val props = sync.sync(ancestorProps, servProps, clientProps, SyncMode.twoWays )
+    val result = Sync.sync(ancestorProps, servProps, clientProps, twoWays )
 
-    assert( props == servProps )
+    assert( result.code == ok )
+    assert( result.merged userEquals servProps )
   }
 
 }

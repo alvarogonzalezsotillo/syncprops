@@ -26,10 +26,6 @@ object Examples {
 
   def date : Date = new Date
 
-  def createSync = new Sync{
-    def sync(ancestor: Props, mine: Props, theirs: Props, mode: SyncMode): SyncResult = ???
-  }
-
   def date( s: String ) : Date = {
     val formats = Seq("YYYY-MM-dd-HH-mm-ss-SSS",
                       "YYYY-MM-dd-HH-mm-ss",

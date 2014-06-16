@@ -10,12 +10,28 @@ package ollitos.syncprops
  */
 
 
-class PropsOps( p : Props ) extends ((String)=>String){
+class PropsOps( p : ollitos.syncprops.Props ) extends ((String)=>String){
   def apply( k : String ) = p.getProperty(k)
   def update( k: String, v: String ) = p.setProperty(k,v)
+  def userEquals( props: Props ) = PropsOps.userEquals(p,props)
 }
 
 object PropsOps{
   import scala.language.implicitConversions
   implicit def toPropsOps( p : Props ) = new PropsOps(p)
+
+  def userEquals( p1: Props, p2: Props ) = {
+
+    import scala.collection.JavaConversions._
+
+    val k1 = p1.userKeySet().toSet
+    val k2 = p1.userKeySet().toSet
+
+    if( k1 != k2 ){
+      false
+    }
+    else{
+      k1.forall( k => p1(k) == p2(k) )
+    }
+  }
 }

@@ -2,6 +2,13 @@ package ollitos.syncprops.engine;
 
 import ollitos.syncprops.Props;
 
+import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
+
+import static ollitos.syncprops.engine.SyncResult.ResultCode.conflict;
+import static ollitos.syncprops.engine.SyncResult.ResultCode.ok;
+
 /**
  * Created with IntelliJ IDEA.
  * User: alvaro
@@ -9,13 +16,131 @@ import ollitos.syncprops.Props;
  * Time: 12:45
  * To change this template use File | Settings | File Templates.
  */
-public abstract class Sync {
+public class Sync {
 
-    public static enum SyncMode{
+    private Props _ancestor;
+    private Props _master;
+    private Props _slave;
+    private boolean _merge;
+
+    private Sync(Props ancestor, Props master, Props slave, boolean merge) {
+        _ancestor = ancestor;
+        _master = master;
+        _slave = slave;
+        _merge = merge;
+    }
+
+    private static boolean before(Date before, Date after) {
+        if (before == null) {
+            return true;
+        }
+        if (after == null) {
+            return false;
+        }
+        return before.getTime() < after.getTime();
+    }
+
+    private static boolean between(Date before, Date between, Date after) {
+        return before(before, after) &&
+                before(before, between) &&
+                before(between, after);
+    }
+
+    public static SyncResult sync(Props ancestor, Props mine, Props theirs, SyncMode mode) {
+        Sync s;
+        switch (mode) {
+            case minePreferred:
+                s = new Sync(ancestor, mine, theirs, false);
+                break;
+            case theirsPreferred:
+                s = new Sync(ancestor, theirs, mine, false);
+                break;
+            case twoWays:
+                s = new Sync(ancestor, mine, theirs, true);
+                break;
+            default:
+                throw new UnsupportedOperationException();
+        }
+        return s.doSync();
+    }
+
+    private SyncResult doSync() {
+
+        Set<String> allKS = allKeys();
+
+        Set<String> conflicts = new HashSet<>();
+        Props merged = new Props();
+
+        for (String key : allKS) {
+            SingleKeySyncResult ssr = syncKey(key, _ancestor.getProperty(key), _master.getProperty(key), _slave.getProperty(key));
+            if (ssr.resultCode == ok) {
+                merged.setProperty(key, ssr.value);
+            }
+            else {
+                conflicts.add(ssr.key);
+            }
+        }
+
+        return new SyncResult(merged, _master, _slave, conflicts);
+    }
+
+    private Set<String> allKeys() {
+        Set<String> allKS = new HashSet<>();
+        allKS.addAll(_ancestor.userKeySet());
+        allKS.addAll(_master.userKeySet());
+        allKS.addAll(_slave.userKeySet());
+        return allKS;
+    }
+
+    private SingleKeySyncResult syncKey(String key, String ancestor, String master, String slave) {
+        if (_merge) {
+            return syncKey_merge(key, ancestor, master, slave);
+        }
+        else {
+            return syncKey_master(key, ancestor, master, slave);
+        }
+    }
+
+    private SingleKeySyncResult syncKey_master(String key, String ancestor, String master, String slave) {
+        if (master != null) {
+            return new SingleKeySyncResult(key, master, ok);
+        }
+        else {
+            return new SingleKeySyncResult(key, slave, ok);
+        }
+    }
+
+    private SingleKeySyncResult syncKey_merge(String key, String ancestor, String master, String slave) {
+
+
+        if (master.equals(slave)) {
+            return new SingleKeySyncResult(key, master, ok);
+        }
+
+
+        if (ancestor == null) {
+            return new SingleKeySyncResult(key, master, conflict);
+        }
+
+        // TODO
+        return new SingleKeySyncResult(key,master,conflict);
+    }
+
+    public static enum SyncMode {
         twoWays,
         minePreferred,
         theirsPreferred,
     }
 
-    public abstract SyncResult sync( Props ancestor, Props mine, Props theirs, SyncMode mode );
+    private class SingleKeySyncResult {
+        String key;
+        String value;
+        SyncResult.ResultCode resultCode;
+
+        public SingleKeySyncResult(String key, String value, SyncResult.ResultCode resultCode) {
+            this.key = key;
+            this.value = value;
+            this.resultCode = resultCode;
+        }
+    }
 }

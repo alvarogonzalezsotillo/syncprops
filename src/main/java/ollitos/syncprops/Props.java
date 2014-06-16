@@ -3,9 +3,7 @@ package ollitos.syncprops;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Properties;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -75,5 +73,44 @@ public class Props extends Properties {
         return getDate(SYNC_DATE);
     }
 
+    public boolean isPropsKey(String key){
+        return key.startsWith(SYNCPROPS_PREFIX);
+    }
+
+    public Set<String> userKeySet(){
+        Set<String> ks = new HashSet<>();
+
+        for( Object k : keySet() ){
+            String key = k.toString();
+            if( isPropsKey(key) ){
+                break;
+            }
+            ks.add(key);
+        }
+        return ks;
+    }
+
+    public static final Comparator<Props> USER_COMPARATOR = new Comparator<Props>() {
+        @Override
+        public int compare(Props o1, Props o2) {
+            TreeSet<String> keys = new TreeSet<>();
+            keys.addAll(o1.userKeySet());
+            keys.addAll(o2.userKeySet());
+
+            for( String k : keys ){
+                if( !o1.containsKey(k) ){
+                    return -1;
+                }
+                if( !o2.containsKey(k) ){
+                    return 1;
+                }
+                int c = o1.getProperty(k).compareTo( o2.getProperty(k) );
+                if( c != 0 ){
+                    return c;
+                }
+            }
+            return 0;
+        }
+    };
 
 }

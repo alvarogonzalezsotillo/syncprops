@@ -2,6 +2,8 @@ package ollitos.syncprops.engine;
 
 import ollitos.syncprops.Props;
 
+import java.util.Set;
+
 /**
  * Created with IntelliJ IDEA.
  * User: alvaro
@@ -14,22 +16,27 @@ public class SyncResult {
     private final Props _theirs;
     private final Props _mine;
     private final Props _merged;
-    private final ResultCode _code;
+    private final Set<String> _conflicts;
 
     public static enum ResultCode{
         ok,
         conflict
     }
 
-    public SyncResult(Props merged, Props mine, Props theirs, ResultCode code ) {
+    public SyncResult(Props merged, Props mine, Props theirs, Set<String> conflicts ) {
         _merged = merged;
         _mine = mine;
         _theirs = theirs;
-        _code = code;
+        _conflicts = conflicts;
     }
 
     public ResultCode code(){
-        return _code;
+        if( _conflicts == null || _conflicts.size() == 0 ){
+            return ResultCode.ok;
+        }
+        else{
+            return ResultCode.conflict;
+        }
     }
 
     public Props merged(){
