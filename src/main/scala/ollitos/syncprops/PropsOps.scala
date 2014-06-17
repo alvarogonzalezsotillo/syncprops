@@ -1,5 +1,7 @@
 package ollitos.syncprops
 
+import java.io.{PrintStream, PrintWriter}
+
 
 /**
  * Created with IntelliJ IDEA.
@@ -14,6 +16,14 @@ class PropsOps( p : ollitos.syncprops.Props ) extends ((String)=>String){
   def apply( k : String ) = p.getProperty(k)
   def update( k: String, v: String ) = p.setProperty(k,v)
   def userEquals( props: Props ) = PropsOps.userEquals(p,props)
+  def prettyPrint( out: PrintStream, header: String = "" ){
+    import scala.collection.JavaConversions._
+    val k = p.userKeySet.toList.sorted
+    if( header != "" ){
+      out.println( header )
+    }
+    k.foreach( key => out.println( s"$key = ${p(key)}" ))
+  }
 }
 
 object PropsOps{

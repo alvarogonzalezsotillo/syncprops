@@ -1,10 +1,15 @@
 package ollitos.syncprops.engine
 
-import ollitos.syncprops.engine.SyncResult.ResultCode._
-import org.scalatest.FlatSpec
-import ollitos.syncprops.engine.Sync.SyncMode._
-import org.scalatest.junit.JUnitRunner
+import java.util.logging.LogManager
+
 import org.junit.runner.RunWith
+import org.scalatest.FlatSpec
+import org.scalatest.junit.JUnitRunner
+
+import ollitos.syncprops.Examples._
+import ollitos.syncprops.engine.SyncResult.ResultCode._
+import ollitos.syncprops.engine.Sync.SyncMode._
+
 import ollitos.syncprops.PropsOps._
 
 /**
@@ -17,19 +22,29 @@ import ollitos.syncprops.PropsOps._
 
 
 @RunWith(classOf[JUnitRunner])
-class SyncTest extends FlatSpec{
+class SyncTest extends FlatSpec {
 
-  import ollitos.syncprops.Examples._
+  def configureJavaLogging = {
+    val inputStream = this.getClass.getResourceAsStream("test-logging.properties");
+    LogManager.getLogManager().readConfiguration(inputStream);
+    println( "Loggers configured")
+  }
 
-  "A new client props" should "copy all from server in twoWays" in{
-    val clientProps = emptyProps(null,null)
-    val ancestorProps = serverProps( date, date )
-    val servProps = serverProps( date, date )
+  configureJavaLogging
 
-    val result = Sync.sync(ancestorProps, servProps, clientProps, twoWays )
+  "A new client props" should "copy all from server in twoWays" in {
+    val clientProps = emptyProps(null, null)
+    val ancestorProps = serverProps(date, date)
+    val servProps = serverProps(date, date)
 
-    assert( result.code == ok )
-    assert( result.merged userEquals servProps )
+    val result = Sync.sync(ancestorProps, servProps, clientProps, twoWays)
+
+    ancestorProps.prettyPrint(System.out, "#ANCESTOR")
+    servProps.prettyPrint(System.out, "#SERVER")
+    result.merged.prettyPrint(System.out, "#MERGED")
+
+    assert(result.code == ok)
+    assert(result.merged userEquals servProps)
   }
 
 }

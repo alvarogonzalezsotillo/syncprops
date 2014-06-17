@@ -1,6 +1,8 @@
 package ollitos.syncprops.engine;
 
 import ollitos.syncprops.Props;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -17,6 +19,8 @@ import static ollitos.syncprops.engine.SyncResult.ResultCode.ok;
  * To change this template use File | Settings | File Templates.
  */
 public class Sync {
+
+    final static Logger logger = LoggerFactory.getLogger(Sync.class);
 
     private Props _ancestor;
     private Props _master;
@@ -93,12 +97,23 @@ public class Sync {
     }
 
     private SingleKeySyncResult syncKey(String key, String ancestor, String master, String slave) {
+        SingleKeySyncResult ret;
+
         if (_merge) {
-            return syncKey_merge(key, ancestor, master, slave);
+            ret = syncKey_merge(key, ancestor, master, slave);
         }
         else {
-            return syncKey_master(key, ancestor, master, slave);
+            ret = syncKey_master(key, ancestor, master, slave);
         }
+
+        logger.debug( "syncKey" );
+        logger.debug( "  _merge  : " + _merge);
+        logger.debug( "  ancestor: " + ancestor );
+        logger.debug( "  master  : " + master );
+        logger.debug( "  slave   : " + slave );
+        logger.debug( "  ret     : " + ret.value + "  --  " + ret.resultCode );
+
+        return ret;
     }
 
     private SingleKeySyncResult syncKey_master(String key, String ancestor, String master, String slave) {
