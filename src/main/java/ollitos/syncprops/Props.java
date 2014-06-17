@@ -83,7 +83,7 @@ public class Props extends Properties {
         for( Object k : keySet() ){
             String key = k.toString();
             if( isPropsKey(key) ){
-                break;
+                continue;
             }
             ks.add(key);
         }

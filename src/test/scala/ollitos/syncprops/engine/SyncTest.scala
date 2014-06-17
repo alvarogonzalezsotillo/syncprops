@@ -33,18 +33,38 @@ class SyncTest extends FlatSpec {
   configureJavaLogging
 
   "A new client props" should "copy all from server in twoWays" in {
-    val clientProps = emptyProps(null, null)
-    val ancestorProps = serverProps(date, date)
+    val cliProps = emptyProps(null, null)
+    val ancProps = serverProps(date, date)
     val servProps = serverProps(date, date)
 
-    val result = Sync.sync(ancestorProps, servProps, clientProps, twoWays)
+    val result = Sync.sync(ancProps, servProps, cliProps, twoWays)
 
-    ancestorProps.prettyPrint(System.out, "#ANCESTOR")
+    ancProps.prettyPrint(System.out, "#ANCESTOR")
     servProps.prettyPrint(System.out, "#SERVER")
+    cliProps.prettyPrint(System.out, "#CLIENT")
     result.merged.prettyPrint(System.out, "#MERGED")
 
     assert(result.code == ok)
     assert(result.merged userEquals servProps)
+  }
+  
+  "A client with new props" should "synchronize the new props in towWays" in{
+    val cliProps = clientProps( date, dateAfter )
+    val ancProps = ancestorProps( dateBefore, dateBefore )
+    val servProps = serverProps( date, dateAfter )
+
+    val result = Sync.sync(ancProps, servProps, cliProps, twoWays)
+
+    ancProps.prettyPrint(System.out, "#ANCESTOR")
+    servProps.prettyPrint(System.out, "#SERVER")
+    cliProps.prettyPrint(System.out, "#CLIENT")
+    result.merged.prettyPrint(System.out, "#MERGED")
+
+    assert(result.code == conflict)
+    assert(result.merged()(matchK) == cliProps(matchK) )
+    assert(result.merged()(onlyInClientK) == cliProps(onlyInClientK) )
+    assert(result.merged()(onlyInServerK) == servProps(onlyInServerK) )
+    assert(result.merged()(mismatchK) == servProps(mismatchK))
   }
 
 }

@@ -24,7 +24,9 @@ object Examples {
   val onlyInServerK = "onlyInServer"
   val mismatchK = "mismatch"
 
-  def date : Date = new Date
+  def date : Date = date( "2014-01-01-00-00-00-001" )
+  def dateBefore  = date( "2014-01-01-00-00-00-000" )
+  def dateAfter   = date( "2014-01-01-00-00-00-002" )
 
   def date( s: String ) : Date = {
     val formats = Seq("YYYY-MM-dd-HH-mm-ss-SSS",
@@ -57,7 +59,7 @@ object Examples {
 
     ret.updateModifiedDate(modified)
     ret.updateSyncDate(synced)
-
+    
     ret
   }
 

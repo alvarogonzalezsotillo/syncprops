@@ -77,15 +77,23 @@ public class Sync {
 
         for (String key : allKS) {
             SingleKeySyncResult ssr = syncKey(key, _ancestor.getProperty(key), _master.getProperty(key), _slave.getProperty(key));
-            if (ssr.resultCode == ok) {
+            if( ssr.value != null ){  
                 merged.setProperty(key, ssr.value);
             }
-            else {
+            if (ssr.resultCode != ok) {
                 conflicts.add(ssr.key);
             }
         }
 
         return new SyncResult(merged, _master, _slave, conflicts);
+    }
+    
+    private Date masterModified(){
+      return _master.modifiedDate();
+    }
+    
+    private Date slaveModified(){
+      return _slave.modifiedDate();
     }
 
     private Set<String> allKeys() {
@@ -106,14 +114,19 @@ public class Sync {
             ret = syncKey_master(key, ancestor, master, slave);
         }
 
-        logger.debug( "syncKey" );
-        logger.debug( "  _merge  : " + _merge);
-        logger.debug( "  ancestor: " + ancestor );
-        logger.debug( "  master  : " + master );
-        logger.debug( "  slave   : " + slave );
-        logger.debug( "  ret     : " + ret.value + "  --  " + ret.resultCode );
+        debug( "syncKey" );
+        debug( "  _merge  : " + _merge);
+        debug( "  ancestor: " + ancestor );
+        debug( "  master  : " + master );
+        debug( "  slave   : " + slave );
+        debug( "  ret     : " + ret.value + "  --  " + ret.resultCode );
 
         return ret;
+    }
+    
+    private void debug( String s ){
+      //logger.debug( s );
+      System.out.println( s );
     }
 
     private SingleKeySyncResult syncKey_master(String key, String ancestor, String master, String slave) {
@@ -124,17 +137,47 @@ public class Sync {
             return new SingleKeySyncResult(key, slave, ok);
         }
     }
+    
+    private  <T> boolean safeEQ( T o1, T o2 ){
+        if( o1 == null && o2 == null ){
+            return true;
+        }
+        if( o1 != null && o2 == null ){
+            return false;
+        }
+        if( o1 == null && o2 != null ){
+            return false;
+        }
+        return o1.equals(o2);
+    }
 
     private SingleKeySyncResult syncKey_merge(String key, String ancestor, String master, String slave) {
 
 
-        if (master.equals(slave)) {
+        if ( safeEQ(master,slave) ) {
+            // KEY UNCHANGED
             return new SingleKeySyncResult(key, master, ok);
         }
 
-
         if (ancestor == null) {
-            return new SingleKeySyncResult(key, master, conflict);
+            if( slave == null ){
+                // KEY IS NEW SINCE ANCESTOR AND IS ONLY IN MASTER
+                return new SingleKeySyncResult(key,master,ok);
+            }
+        }
+        
+        if( safeEQ(master,ancestor) ){
+            if( slave == null ){
+                // KEY IS UNCHANGED IN MASTER, DOESNT EXIST IN SLAVE
+                return new SingleKeySyncResult(key,master,ok);
+            }
+        }
+        
+        if( master == null && ancestor == null ){
+            if( slave != null ){
+                // KEY IS NEW IN SLAVE
+                return new SingleKeySyncResult(key,slave,ok);
+            }
         }
 
         // TODO
